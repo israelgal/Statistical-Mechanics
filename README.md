@@ -1,3 +1,3 @@
-# effective-system
+# Statistical Mechanics Class at Cinvestav 
 
-#hola 
+
