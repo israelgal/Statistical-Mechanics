@@ -67,7 +67,7 @@ class RDF_obj:
         """ corremos sobre cada par de particulas, calculamos su distancia, construimos un histograma
         cada par de particulas contribuye dos veces al valor del histograma """
         
-        clibs = ctypes.cdll.LoadLibrary("./gder_libs.so")
+        clibs = ctypes.cdll.LoadLibrary("./gdeR_libs.so")
 
         c_rdf = clibs.RDF
         c_rdf.restype =  None

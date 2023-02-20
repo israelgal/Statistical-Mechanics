@@ -32,7 +32,7 @@ void RDF(float *rdf, float *coord, int amt_part, int A, int B, int C, int res, f
 
 	for (int ii=0;ii<amt_part;ii++){
 		for (int jj=ii;jj<amt_part;jj++){
-			dist = distance(A,B,C,&coord[3*ii],&coord[3*(ii+jj)]);
+			dist = distance(A,B,C,&coord[3*ii],&coord[3*jj]);
 			index = (int)(dist/dr);
 			if (0 < index && index < res) rdf[index] += 2.0;
 

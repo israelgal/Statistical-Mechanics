@@ -1,0 +1,1 @@
+gcc -fPIC -shared -o libsc.so libsc.c
