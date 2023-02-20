@@ -1,9 +1,10 @@
 import scipy as sp
 import numpy as np
 import time
+import ctypes 
 
 from matplotlib import pyplot as plt
-
+from numpy.ctypeslib import ndpointer
 
 
 
@@ -21,7 +22,7 @@ class RDF_obj:
         self.z = Z
 
         self.n_atoms = int(data[0].split()[0])
-        self.coordinates = np.zeros((self.n_atoms, 3))
+        self.coordinates = np.zeros((self.n_atoms, 3),dtype = np.float32)
         self.resolution = resolution
 
         for j, line in enumerate(data[2 : self.n_atoms + 2]):
@@ -68,13 +69,22 @@ class RDF_obj:
         """ corremos sobre cada par de particulas, calculamos su distancia, construimos un histograma
         cada par de particulas contribuye dos veces al valor del histograma """
         
+
+        clibs = ctypes.cdll.LoadLibrary("./libsc.so")
+
+        c_distance = clibs.distance
+        c_distance.restype = ctypes.c_float
+        c_distance.argtypes = [ctypes.c_float,ctypes.c_float,ctypes.c_float, 
+            ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"),
+            ndpointer(ctypes.c_float, flags="C_CONTIGUOUS")]
         
         for i, part_1 in enumerate(self.coordinates):
             
              
             for j, part_2 in enumerate(self.coordinates[i:]):
                 
-                dist = self.distance(part_1, part_2)
+                #dist = self.distance(part_1, part_2)
+                dist = c_distance(self.x, self.y, self.z, self.coordinates[i], self.coordinates[j])
                 
                 index = int(dist / dr)
                 if 0 < index < self.resolution:
