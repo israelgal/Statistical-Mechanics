@@ -1,10 +1,10 @@
 import scipy as sp
 import numpy as np
 import time
-import ctypes
 
 from matplotlib import pyplot as plt
-from numpy.ctypeslib import ndpointer 
+
+
 
 
 
@@ -21,7 +21,7 @@ class RDF_obj:
         self.z = Z
 
         self.n_atoms = int(data[0].split()[0])
-        self.coordinates = np.zeros((self.n_atoms, 3),dtype=np.float32)
+        self.coordinates = np.zeros((self.n_atoms, 3))
         self.resolution = resolution
 
         for j, line in enumerate(data[2 : self.n_atoms + 2]):
@@ -34,16 +34,16 @@ class RDF_obj:
         volume = 4.0 / 3.0 * sp.pi * r**3
         return volume
      
-    def distance(self,a, b):
+    def distance(self,cx,cy,cz,px,py,pz):
         """ distancia minima entre dos particulas, considerando las dimensiones de la celda primaria """
-        dx = abs(a[0] - b[0])
-        x = min(dx, abs(self.x - dx))
+        dx = np.absolute(px - cx)
+        x = np.minimum(dx, abs(self.x - dx))
          
-        dy = abs(a[1] - b[1])
-        y = min(dy, abs(self.y - dy))
+        dy = np.absolute(py - cy)
+        y = np.minimum(dy, abs(self.y - dy))
          
-        dz = abs(a[2] - b[2])
-        z = min(dz, abs(self.z - dz))
+        dz = np.absolute(pz - cz)
+        z = np.minimum(dz, abs(self.z - dz))
          
         return np.sqrt(x**2 + y**2 + z**2)
      
@@ -63,28 +63,22 @@ class RDF_obj:
         
         print('Calculando g(r) para {:4d} particulas...'.format(self.n_atoms))
         start = time.time()
+
+
         """ corremos sobre cada par de particulas, calculamos su distancia, construimos un histograma
         cada par de particulas contribuye dos veces al valor del histograma """
+
+        vec_distance = np.vectorize(self.distance)
         
-        clibs = ctypes.cdll.LoadLibrary("./gdeR_libs.so")
-
-        c_distance = clibs.distance
-        c_distance.restype =  ctypes.c_float
-        c_distance.argtypes = [ctypes.c_float,ctypes.c_float,ctypes.c_float,
-            ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"),
-            ndpointer(ctypes.c_float, flags="C_CONTIGUOUS")]
-
+        
         for i, part_1 in enumerate(self.coordinates):
+
+            indexes = (vec_distance(self.coordinates[i:,0],self.coordinates[i:,1],self.coordinates[i:,2],part_1[0],part_1[1],part_1[2])/dr).astype(int)
+            indexes = indexes[(indexes > 0) & (indexes < self.resolution)]
+            np.add.at(self.rdf,indexes,2)
             
-             
-            for j, part_2 in enumerate(self.coordinates[i:]):
-                
-                #dist = distance(part_1, part_2)
-                dist = c_distance(self.x,self.y,self.z, self.coordinates[i], self.coordinates[i+j])
-                index = int(dist / dr)
-                if 0 < index < self.resolution:
-                    self.rdf[index] += 2.0
-         
+                    
+
         for j in range(self.resolution):
                 r1 = j * dr
                 r2 = r1 + dr
@@ -96,10 +90,11 @@ class RDF_obj:
         """ normalizamos con respecto al volumen del cascaron esferico que pertene a cada radio """
         for i, value in enumerate(self.rdf):
             self.rdf[i] = value/ (volumes[i] * self.dn) 
-        
+
         end = time.time()
         print("Tiempo total de computo: {:.3f} segundos".format(end - start))
 
+         
     def plot(self, rdf_filename):
          
         plt.xlabel('r (Å)')

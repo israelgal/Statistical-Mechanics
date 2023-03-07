@@ -1,10 +1,11 @@
 import scipy as sp
 import numpy as np
 import time
-import ctypes
+import pandas as pd
 
 from matplotlib import pyplot as plt
-from numpy.ctypeslib import ndpointer 
+
+
 
 
 
@@ -21,12 +22,16 @@ class RDF_obj:
         self.z = Z
 
         self.n_atoms = int(data[0].split()[0])
-        self.coordinates = np.zeros((self.n_atoms, 3),dtype=np.float32)
+        self.coordinates = np.zeros((self.n_atoms, 3))
         self.resolution = resolution
 
         for j, line in enumerate(data[2 : self.n_atoms + 2]):
             self.coordinates[j, :] = [float(value) for value in line.split()]
          
+        
+
+        self.dataFrame = pd.DataFrame(self.coordinates)
+
         self.density_number()
 
     def volume(self,r):
@@ -63,28 +68,33 @@ class RDF_obj:
         
         print('Calculando g(r) para {:4d} particulas...'.format(self.n_atoms))
         start = time.time()
+
+
         """ corremos sobre cada par de particulas, calculamos su distancia, construimos un histograma
         cada par de particulas contribuye dos veces al valor del histograma """
+
         
-        clibs = ctypes.cdll.LoadLibrary("./gdeR_libs.so")
+        
+        for i, part_1 in self.dataFrame.iterrows():
 
-        c_distance = clibs.distance
-        c_distance.restype =  ctypes.c_float
-        c_distance.argtypes = [ctypes.c_float,ctypes.c_float,ctypes.c_float,
-            ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"),
-            ndpointer(ctypes.c_float, flags="C_CONTIGUOUS")]
+            short_dataFrame = (self.dataFrame.loc[i:]).copy()
 
-        for i, part_1 in enumerate(self.coordinates):
+            short_dataFrame['Ind'] = short_dataFrame.apply(lambda row: int(self.distance(part_1,row)/dr),axis=1)
+            indexes = short_dataFrame.loc[(short_dataFrame['Ind'] > 0) & (short_dataFrame['Ind'] < self.resolution)]
+            np.add.at(self.rdf,indexes['Ind'].to_numpy(),2)
+            
             
              
-            for j, part_2 in enumerate(self.coordinates[i:]):
+            #for j, part_2 in (self.dataFrame.loc[i:]).iterrows():
                 
-                #dist = distance(part_1, part_2)
-                dist = c_distance(self.x,self.y,self.z, self.coordinates[i], self.coordinates[i+j])
-                index = int(dist / dr)
-                if 0 < index < self.resolution:
-                    self.rdf[index] += 2.0
-         
+            #    dist = self.distance(part_1.to_numpy() , part_2.to_numpy() )
+                
+            #    index = int(dist / dr)
+
+            #    if 0 < index < self.resolution:
+            #        self.rdf[index] += 2.0
+                    
+
         for j in range(self.resolution):
                 r1 = j * dr
                 r2 = r1 + dr
@@ -96,10 +106,11 @@ class RDF_obj:
         """ normalizamos con respecto al volumen del cascaron esferico que pertene a cada radio """
         for i, value in enumerate(self.rdf):
             self.rdf[i] = value/ (volumes[i] * self.dn) 
-        
+
         end = time.time()
         print("Tiempo total de computo: {:.3f} segundos".format(end - start))
 
+         
     def plot(self, rdf_filename):
          
         plt.xlabel('r (Å)')
