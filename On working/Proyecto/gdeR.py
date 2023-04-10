@@ -1,6 +1,5 @@
 import scipy as sp
 import numpy as np
-import pandas as pd
 import time
 
 from matplotlib import pyplot as plt
@@ -26,10 +25,8 @@ class RDF_obj:
         self.resolution = resolution
 
         for j, line in enumerate(data[2 : self.n_atoms + 2]):
-            self.coordinates[j, 0:3] = [float(value) for value in line.split()]
-        
-        #self.dataFrame = pd.DataFrame(self.coordinates, columns=['x', 'y', 'z']) 
-
+            self.coordinates[j, :] = [float(value) for value in line.split()]
+         
         self.density_number()
 
     def volume(self,r):
@@ -37,17 +34,16 @@ class RDF_obj:
         volume = 4.0 / 3.0 * sp.pi * r**3
         return volume
      
-    def distance(self,cx,cy,cz,px,py,pz):
+    def distance(self,a, b):
         """ distancia minima entre dos particulas, considerando las dimensiones de la celda primaria """
-        #print(a,b.shape)
-        dx = np.absolute(px - cx)
-        x = np.minimum(dx, abs(self.x - dx))
+        dx = abs(a[0] - b[0])
+        x = min(dx, abs(self.x - dx))
          
-        dy = np.absolute(py - cy)
-        y = np.minimum(dy, abs(self.y - dy))
+        dy = abs(a[1] - b[1])
+        y = min(dy, abs(self.y - dy))
          
-        dz = np.absolute(pz - cz)
-        z = np.minimum(dz, abs(self.z - dz))
+        dz = abs(a[2] - b[2])
+        z = min(dz, abs(self.z - dz))
          
         return np.sqrt(x**2 + y**2 + z**2)
      
@@ -72,16 +68,19 @@ class RDF_obj:
         """ corremos sobre cada par de particulas, calculamos su distancia, construimos un histograma
         cada par de particulas contribuye dos veces al valor del histograma """
         
-        vec_distance = np.vectorize(self.distance)
-
+        
         for i, part_1 in enumerate(self.coordinates):
-        
-            indexes = (vec_distance(self.coordinates[i:,0],self.coordinates[i:,1],self.coordinates[i:,2],part_1[0],part_1[1],part_1[2])/dr).astype(int)
-            indexes = indexes[(indexes > 0) & (indexes < self.resolution)]
-            np.add.at(self.rdf,indexes,2)
-        
+            
+             
+            for j, part_2 in enumerate(self.coordinates[i:]):
                 
-     
+                dist = self.distance(part_1, part_2)
+                
+                index = int(dist / dr)
+                if 0 < index < self.resolution:
+                    self.rdf[index] += 2.0
+                    
+
         for j in range(self.resolution):
                 r1 = j * dr
                 r2 = r1 + dr
@@ -112,7 +111,6 @@ class RDF_obj:
  
 
  
-particles_rdf = RDF_obj('coor100e.dat', 25, 25, 25,200)
+particles_rdf = RDF_obj('1eshD.txt', 25, 25, 25,200)
 particles_rdf.compute_rdf()
 particles_rdf.plot("rdf.pdf")
-plt.savefig('rdfplot.pdf')
