@@ -5,6 +5,7 @@ with open('prueba.txt') as f:
 
 
 	#print('linea 0', data[0].split()[0])
+	print(len(data))
 
 coordenadas = np.zeros((4, 4))
 
