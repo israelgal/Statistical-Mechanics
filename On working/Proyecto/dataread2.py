@@ -1,5 +1,5 @@
 import numpy as np
-import sys
+
 
 """ Abre documento .cif y lee sus lineas """
 
@@ -40,96 +40,98 @@ with open('6awc.dat','w') as g:
 
 
 # Adenine
-A = 135.13
+#A = 135.13
 
 # Citosina / Cytosine
-C = 111.1
+#C = 111.1
 
 #Guanina / Guanine
-G = 151.13
+#G = 151.13
 
 #Uracil
-U = 112.09
+#U = 112.09
 
 #Alanine
-ALA = 89.09
+#ALA = 89.09
 
 #Arginine
-ARG = 174.2
+#ARG = 174.2
 
 #Asparagine
-ASN = 132.12
+#ASN = 132.12
 
 #Aspartic
-ASP = 133.1
+#ASP = 133.1
 
 #Cysteine
-CYS = 121.16
+#CYS = 121.16
 
 #Glutamine
-GLN = 146.14
+#GLN = 146.14
 
 #Glutamic acid
-GLU = 147.13
+#GLU = 147.13
 
 #Glycine
-GLY = 75.07
+#GLY = 75.07
 
 #Histidine
-HIS = 155.1546
+#HIS = 155.1546
 
 #Isoleucine
-ILE = 131.07
+#ILE = 131.07
 
 #Leucine
-LEU = 131.17
+#LEU = 131.17
 
 #Lysine
-LYS = 146.19
+#LYS = 146.19
 
 #Methionine
-MET = 149.21
+#MET = 149.21
 
 #Phenylalanine
-PHE = 165.19
+#PHE = 165.19
 
 #Proline
-PRO = 115.13
+#PRO = 115.13
 
 #Serine
-SER = 105.09
+#SER = 105.09
 
 #Threonine
-THR = 119.1192
+#THR = 119.1192
 
 #Tryptophan
-TRP = 204.23
+#TRP = 204.23
 
 #Tyrosine
-TYR = 181.19
+#TYR = 181.19
 
 #Valine
-VAL = 117.151
+#VAL = 117.151
 
 """ Leemos el archivo de datos creado anteriormente"""
 
-with open('6awc.dat') as h:
-    data_Mol = h.readlines()
+#with open('6awc.dat') as h:
+#    data_Mol = h.readlines()
 
 #print(len(data_Mol))
 
 
 # Definimos el número de átomos
 
-n_atoms = len(data_Mol) - 1
+#n_atoms = len(data_Mol) - 1
 
 """ Creamos una matriz 418x4 de ceros """
 
-coordenadas = np.zeros((len(data_Mol) -1 , 4))
+#coordenadas = np.zeros((len(data_Mol) -1 , 4))
 
 """ Creamos una lista de 418 elementos con los valores de las masas """
 
-chain = []
+#chain = []
+
+"""
 
 for line in range(1, n_atoms + 1  ):
     if data_Mol[line].split()[0] == 'A':
@@ -184,16 +186,24 @@ for line in range(1, n_atoms + 1  ):
         chain.append(0)
         #print(data_Mol[line].split()[0])
 
+        """
+
 #print(chain[-1:])
 
 """ Llenamos la matriz creada de 418x4, en la primera columna están las masas
     y en las siguientes las coordenadas XYZ de la molécula """
 
+"""
+
 for j, line in enumerate(data_Mol[1 :  n_atoms + 1 ]):
             coordenadas[j, 0] = chain[j]
             coordenadas[j, 1:] = [float(value) for value in line.split()[2:]]
 
+"""
+
 """ Creamos una función que encuentra el centro de masa """
+
+"""
 
 def CM(XYZ, mass):
     mass = mass.reshape((n_atoms,1))
@@ -210,9 +220,10 @@ def CM(XYZ, mass):
     #Y = np.sum(Vec,axis = 1) / M_T
     #Z = np.sum(Vec,axis = 2) / M_T
     return np.sum(Vec, axis = 0)/M_T
+    """
 
-Com = CM(coordenadas[:,1:4], coordenadas[:,0])
-print(Com) # Com [229.94844561 230.41924824 228.07901088]
+#Com = CM(coordenadas[:,1:4], coordenadas[:,0])
+#print(Com) # Com [229.94844561 230.41924824 228.07901088]
 
 
 """ Creamos un método iterativo para encontrar el centro de masa """

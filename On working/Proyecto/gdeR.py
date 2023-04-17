@@ -29,6 +29,7 @@ class RDF_obj:
          
         self.density_number()
 
+        print(self.coordinates)
     def volume(self,r):
         """ volumen de una esfera de radio r """
         volume = 4.0 / 3.0 * sp.pi * r**3
@@ -108,8 +109,6 @@ class RDF_obj:
          
         plt.show()
  
- 
-
  
 particles_rdf = RDF_obj('1eshD.txt', 25, 25, 25,200)
 particles_rdf.compute_rdf()
