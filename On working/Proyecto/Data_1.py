@@ -43,7 +43,7 @@ def CoM(stack):
         X += stack[i,0] * stack[i,1]
         Y += stack[i,0] * stack[i,2]
         Z += stack[i,0] * stack[i,3]
-    return [X, Y, Z]/M
+    return (X, Y, Z)/M
 
 
 """ Se sustituyen los pesos atómicos de H, O, N, C, P
@@ -74,19 +74,19 @@ for j, line in enumerate(Ats_inf):
 
 """ Encontrar las dimensiones de los nucleotidos """
 
-x = 0
-y = 0
-z = 0
+X_max = 0
+Y_max = 0
+Z_max = 0
 
 for i in range(N_atoms):
 
-    if x < abs(Matrix[i,3]):
-        x = abs(Matrix[i,3])
-    if y < abs(Matrix[i,4]):
-        y = abs(Matrix[i,4])
-    if z < abs(Matrix[i,5]):
-        z = abs(Matrix[i,5])
-print(x,y,z)
+    if X_max < abs(Matrix[i,3]):
+        X_max = abs(Matrix[i,3])
+    if Y_max < abs(Matrix[i,4]):
+        Y_max = abs(Matrix[i,4])
+    if Z_max < abs(Matrix[i,5]):
+        Z_max = abs(Matrix[i,5])
+#print(X_max,Y_max,Z_max)
 
 A = []
 C = []
@@ -106,15 +106,22 @@ for i in range(1, int(Matrix[N_atoms-1,2]) + 1):
     CM = CoM(stack)
 
     if ACGU == 1:
-        A.append(CM)
+        A.append([CM[0], CM[1], CM[2]])
     if ACGU == 2:
-        C.append(CM)
+        C.append([CM[0], CM[1], CM[2]])
     if ACGU == 3:
-        G.append(CM)
+        G.append([CM[0], CM[1], CM[2]])
     if ACGU == 4:
-        U.append(CM)
+        U.append([CM[0], CM[1], CM[2]])
     stack = []
 
+A = np.array(A)
+C = np.array(C)
+print(A[0])
+print(C)
+
+#A = np.array(A[0,0], C[0,0])
+#dx_A = abs(A[0,0] - C[0,0])
 
 def distance(a, b):
         """ distancia minima entre dos particulas, considerando las dimensiones de la celda primaria """
@@ -138,6 +145,9 @@ def volume(r):
 
 def compute_rdf(SA, SB):
         """ el radio de corte es la mitad de la longitud minima de las dimensiones de la celda """
+
+        resolution = 300 
+
         r_cutoff = min( min(x, y), z ) / 2.0
         dr = r_cutoff / resolution
         volumes = np.zeros(resolution)
@@ -156,29 +166,28 @@ def compute_rdf(SA, SB):
 
         for i, part_1 in enumerate(SA):
 
-
             for j, part_2 in enumerate(SB):
 
                 dist = distance(part_1, part_2)
 
                 index = int(dist / dr)
-                if 0 < index < self.resolution:
-                    self.rdf[index] += 2.0
+                if 0 < index < resolution:
+                    rdf[index] += 2.0
 
 
-        for j in range(self.resolution):
+        for j in range(resolution):
                 r1 = j * dr
                 r2 = r1 + dr
-                v1 = self.volume(r1)
-                v2 = self.volume(r2)
+                v1 = volume(r1)
+                v2 = volume(r2)
                 volumes[j] += v2 - v1
 
-        self.rdf = self.rdf/self.n_atoms
+        #self.rdf = self.rdf/self.n_atoms
         """ normalizamos con respecto al volumen del cascaron esferico que pertene a cada radio """
-        for i, value in enumerate(self.rdf):
-            self.rdf[i] = value/ (volumes[i] * self.dn)
+        #for i, value in enumerate(self.rdf):
+        #    self.rdf[i] = value/ (volumes[i] * self.dn)
 
-        end = time.time()
-        print("Tiempo total de computo: {:.3f} segundos".format(end - start))
+        #end = time.time()
+        #print("Tiempo total de computo: {:.3f} segundos".format(end - start))
 
-resolution = 1
+
