@@ -20,6 +20,7 @@ class RDF_obj:
         self.y = Y
         self.z = Z
 
+
         self.n_atoms = int(data[0].split()[0])
         self.coordinates = np.zeros((self.n_atoms, 3))
         self.resolution = resolution

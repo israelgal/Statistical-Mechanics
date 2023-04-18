@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import scipy as sp
 
 """ Abre documento .cif y lee sus lineas """
 
@@ -13,9 +15,9 @@ Ats_inf = []
 
 for line in range(len(data)):
     if 'ATOM' in data[line]:
-        if data[line].split()[5] == 'A' or 'C' or 'G' or 'U':
+        l_inf = data[line].split()[5]
+        if l_inf == 'A' or l_inf == 'C' or l_inf == 'G' or l_inf == 'U':
             Ats_inf.append(data[line])
-
 
 with open('1esh_raw.pdb','w') as g:
     for line in Ats_inf:
@@ -103,6 +105,7 @@ for i in range(1, int(Matrix[N_atoms-1,2]) + 1):
             ACGU = int(Matrix[j,1])
 
     stack = np.array(stack)
+    print(stack)
     CM = CoM(stack)
 
     if ACGU == 1:
@@ -117,77 +120,96 @@ for i in range(1, int(Matrix[N_atoms-1,2]) + 1):
 
 A = np.array(A)
 C = np.array(C)
-print(A[0])
-print(C)
+G = np.array(G)
+U = np.array(U)
 
-#A = np.array(A[0,0], C[0,0])
-#dx_A = abs(A[0,0] - C[0,0])
 
 def distance(a, b):
         """ distancia minima entre dos particulas, considerando las dimensiones de la celda primaria """
         dx = abs(a[0] - b[0])
-        x = min(dx, abs(x - dx))
+        x = min(dx, abs(X_max - dx))
 
         dy = abs(a[1] - b[1])
-        y = min(dy, abs(y - dy))
+        y = min(dy, abs(Y_max - dy))
 
         dz = abs(a[2] - b[2])
-        z = min(dz, abs(z - dz))
+        z = min(dz, abs(Z_max - dz))
 
-def density_number():
+        return np.sqrt(x**2 + y**2 + z**2)
+
+def density_number(N_A, N_B):
         """ calcula la densidad numérica"""
-        dn = N_atoms /(x * y * z)
+        dn = N_A * N_B /(X_max * Y_max * Z_max)
+
+        return dn
 
 def volume(r):
 
         volume = ( 4.0 * sp.pi * r**3) / 3.0
         return volume
 
-def compute_rdf(SA, SB):
+def compute_rdf(Species_A, Species_B):
         """ el radio de corte es la mitad de la longitud minima de las dimensiones de la celda """
 
-        resolution = 300 
+        resolution = 100
+        N_A = len(Species_A)
+        N_B = len(Species_B)
+        N_species = N_A + N_B
 
-        r_cutoff = min( min(x, y), z ) / 2.0
+
+        r_cutoff = min( min(X_max, Y_max ), Z_max ) / 2.0
         dr = r_cutoff / resolution
         volumes = np.zeros(resolution)
 
         radii = np.linspace(0.0, resolution * dr, resolution)
-        rdf = np.zeros(resolution)
+        rdf = np.zeros((int(len(Species_A)), resolution))
 
-
-        print('Calculando g(r) para {:4d} particulas...'.format(N_atoms))
-        start = time.time()
+        #print('Calculando g(r) para {:4d} particulas...'.format(N_atoms))
+        #start = time.time()
 
 
         """ corremos sobre cada par de particulas, calculamos su distancia, construimos un histograma
         cada par de particulas contribuye dos veces al valor del histograma """
 
 
-        for i, part_1 in enumerate(SA):
 
-            for j, part_2 in enumerate(SB):
+        for i, part_1 in enumerate(Species_A):
+
+            for j, part_2 in enumerate(Species_B):
 
                 dist = distance(part_1, part_2)
-
                 index = int(dist / dr)
                 if 0 < index < resolution:
-                    rdf[index] += 2.0
-
+                    rdf[i,index] += 2.0
 
         for j in range(resolution):
-                r1 = j * dr
-                r2 = r1 + dr
-                v1 = volume(r1)
-                v2 = volume(r2)
-                volumes[j] += v2 - v1
-
-        #self.rdf = self.rdf/self.n_atoms
-        """ normalizamos con respecto al volumen del cascaron esferico que pertene a cada radio """
-        #for i, value in enumerate(self.rdf):
-        #    self.rdf[i] = value/ (volumes[i] * self.dn)
-
-        #end = time.time()
-        #print("Tiempo total de computo: {:.3f} segundos".format(end - start))
+            r1 = j*dr
+            r2 = r1 + dr
+            v1 = volume(r1)
+            v2 = volume(r2)
+            volumes[j] += v2 -v1
 
 
+
+        rdf = rdf / N_species
+
+
+        rdf = np.mean(rdf, axis = 0)
+
+
+
+        for i, value in enumerate(rdf):
+            rdf[i] = value/ (volumes[i] * density_number(N_A,N_B))
+
+
+        plt.xlabel('r (Å)')
+        plt.ylabel('g(r)')
+        plt.plot(radii, rdf)
+
+        plt.savefig('tries.pdf', dpi=300, bbox_inches='tight')
+
+
+
+compute_rdf(A,C)
+#print(A)
+#print(C)
