@@ -98,6 +98,8 @@ stack = []
 
 """ Calcula de los centros de masas y de guardar los en listas para cada ACGU """
 
+""" El 1 es por el número del residuo xd """
+
 for i in range(1, int(Matrix[N_atoms-1,2]) + 1):
     for j in range(len(Matrix)):
         if int(Matrix[j,2]) == i:

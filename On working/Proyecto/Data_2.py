@@ -67,12 +67,14 @@ for j, line in enumerate(Ats_inf):
         print(0)
     if  line.split()[5] == 'A':
         Matrix[j, 1] = 1
-    if  line.split()[5] == 'C':
+    elif  line.split()[5] == 'C':
         Matrix[j, 1] = 2
-    if  line.split()[5] == 'G':
+    elif  line.split()[5] == 'G':
         Matrix[j, 1] = 3
-    if  line.split()[5] == 'U':
+    elif  line.split()[5] == 'U':
         Matrix[j, 1] = 4
+    else:
+        print(0)
     Matrix[j,2:] = [line.split()[8],
             line.split()[10], line.split()[11],line.split()[12]]
 
@@ -101,18 +103,23 @@ stack = []
 
 """ Calcula de los centros de masas y de guardar los en listas para cada ACGU """
 l = 0
+print(len(stack))
+
 for i in range(1, int(Matrix[N_atoms-1,2]) + 1):
     for j in range(len(Matrix)):
         if int(Matrix[j,2]) == i:
             stack.append([Matrix[j,0], Matrix[j,3], Matrix[j,4], Matrix[j,5]])
             ACGU = int(Matrix[j,1])
 
-    stack = np.array(stack)
-    if stack.size == 0:
-
+    if int(len(stack)) == 0:
+        l = l + 1
+    else:
+        stack = np.array(stack)
+        print(stack)
         if l == 0:
             print(i, j, ACGU)
             l = l+1
+
     stack = []
 
 
