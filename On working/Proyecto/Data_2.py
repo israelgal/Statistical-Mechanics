@@ -115,13 +115,115 @@ for i in range(1, int(Matrix[N_atoms-1,2]) + 1):
         l = l + 1
     else:
         stack = np.array(stack)
-        print(stack)
+        CM = CoM(stack)
+        #print(stack)
+        if ACGU == 1:
+            A.append([CM[0], CM[1], CM[2]])
+        elif ACGU == 2:
+            C.append([CM[0], CM[1], CM[2]])
+        elif ACGU == 3:
+            G.append([CM[0], CM[1], CM[2]])
+        elif ACGU == 4:
+            U.append([CM[0], CM[1], CM[2]])
+
         if l == 0:
             print(i, j, ACGU)
             l = l+1
 
     stack = []
 
+A = np.array(A)
+C = np.array(C)
+G = np.array(G)
+U = np.array(U)
+
+print(A)
+print(C)
+
+def distance(a, b):
+        """ distancia minima entre dos particulas, considerando las dimensiones de la celda primaria """
+        dx = abs(a[0] - b[0])
+        x = min(dx, abs(X_max - dx))
+
+        dy = abs(a[1] - b[1])
+        y = min(dy, abs(Y_max - dy))
+
+        dz = abs(a[2] - b[2])
+        z = min(dz, abs(Z_max - dz))
+
+        return np.sqrt(x**2 + y**2 + z**2)
+
+def density_number(N_A, N_B):
+        """ calcula la densidad numérica"""
+        dn = N_A * N_B /(X_max * Y_max * Z_max)
+
+        return dn
+
+def volume(r):
+
+        volume = ( 4.0 * sp.pi * r**3) / 3.0
+        return volume
+
+def compute_rdf(Species_A, Species_B):
+        """ el radio de corte es la mitad de la longitud minima de las dimensiones de la celda """
+
+        resolution = 300
+        N_A = len(Species_A)
+        N_B = len(Species_B)
+        N_species = N_A + N_B
+
+
+        r_cutoff = min( min(X_max, Y_max ), Z_max ) / 2.0
+        dr = r_cutoff / resolution
+        volumes = np.zeros(resolution)
+
+        radii = np.linspace(0.0, resolution * dr, resolution)
+        rdf = np.zeros((int(len(Species_A)), resolution))
+
+        #print('Calculando g(r) para {:4d} particulas...'.format(N_atoms))
+        #start = time.time()
+
+
+        """ corremos sobre cada par de particulas, calculamos su distancia, construimos un histograma
+        cada par de particulas contribuye dos veces al valor del histograma """
 
 
 
+        for i, part_1 in enumerate(Species_A):
+
+            for j, part_2 in enumerate(Species_B):
+
+                dist = distance(part_1, part_2)
+                index = int(dist / dr)
+                if 0 < index < resolution:
+                    rdf[i,index] += 2.0
+
+        for j in range(resolution):
+            r1 = j*dr
+            r2 = r1 + dr
+            v1 = volume(r1)
+            v2 = volume(r2)
+            volumes[j] += v2 -v1
+
+
+
+        #rdf = rdf / N_species
+
+
+        rdf = np.mean(rdf, axis = 0)
+
+
+
+        for i, value in enumerate(rdf):
+            rdf[i] = value/ (volumes[i] * density_number(N_A,N_B))
+
+
+        plt.xlabel('r (Å)')
+        plt.ylabel('g(r)')
+        plt.plot(radii, rdf)
+
+        plt.savefig('tries.pdf', dpi=300, bbox_inches='tight')
+
+
+
+compute_rdf(A,U)
