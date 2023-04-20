@@ -7,7 +7,6 @@ import scipy as sp
 with open('6awc.cif') as f:
     data = f.readlines()
 
-
 """ Crea una lista y añade la información del átomo
      en cada entrada   """
 
@@ -82,20 +81,7 @@ for j, line in enumerate(Ats_inf):
             line.split()[10], line.split()[11],line.split()[12]]
 
 
-""" Encontrar las dimensiones de los nucleotidos """
 
-X_max = 0
-Y_max = 0
-Z_max = 0
-
-for i in range(N_atoms):
-
-    if X_max < abs(Matrix[i,3]):
-        X_max = abs(Matrix[i,3])
-    if Y_max < abs(Matrix[i,4]):
-        Y_max = abs(Matrix[i,4])
-    if Z_max < abs(Matrix[i,5]):
-        Z_max = abs(Matrix[i,5])
 
 A = []
 C = []
@@ -105,7 +91,6 @@ stack = []
 
 """ Calcula de los centros de masas y de guardar los en listas para cada ACGU """
 l = 0
-#print(len(stack))
 
 for i in range(1, int(Matrix[N_atoms-1,2]) + 1):
     for j in range(len(Matrix)):
@@ -135,18 +120,24 @@ for i in range(1, int(Matrix[N_atoms-1,2]) + 1):
 
     stack = []
 
+
 A = np.array(A)
 C = np.array(C)
 G = np.array(G)
 U = np.array(U)
 
-print(len(A))
+#A_0 = np.reshape(A, axis = 0)
+
+#print(A_0)
+
+#print(len(A))
 
 #print(A)
 #print(C)
 
 def distance(a, b):
-        """ distancia minima entre dos particulas, considerando las dimensiones de la celda primaria """
+    """ Calculo de la distancia  """
+
     dx = abs(a[0] - b[0])
     x = min(dx, abs(X_max - dx))
 
@@ -159,7 +150,7 @@ def distance(a, b):
     return np.sqrt(x**2 + y**2 + z**2)
 
 def density_number(N_A, N_B):
-        """ calcula la densidad numérica"""
+    """ calcula la densidad numérica"""
     dn = N_A * N_B /(X_max * Y_max * Z_max)
 
     return dn
@@ -169,8 +160,8 @@ def volume(r):
     volume = ( 4.0 * sp.pi * r**3) / 3.0
     return volume
 
-def compute_rdf(Species_A, Species_B):
-        """ el radio de corte es la mitad de la longitud minima de las dimensiones de la celda """
+def compute_rdf(Species_A, Species_B, resolution):
+    """ el radio de corte es la mitad de la longitud minima de las dimensiones de la celda """
 
     resolution = 300
     N_A = len(Species_A)
@@ -214,33 +205,51 @@ def compute_rdf(Species_A, Species_B):
     for i, value in enumerate(rdf):
         rdf[i] = value/ (volumes[i] * density_number(N_A,N_B))
 
-    return rdf, radii
+    return radii, rdf
 
-    def plot( rdf, radii,  resolution,  species_A, species_B, species_name):
+def plotrdf( species_A, species_B, resolution, species_name):
 
-        plt.xlabel( 'r (Å)')
-        plt.ylabel(  'g(r)' )
+    plt.xlabel( 'r (Å)')
+    plt.ylabel(  'g(r)' )
 
-        radii, rdf = compute_rdf(Species_A, Species_B)
-        plt.plot(radii, rdf)
+    radii, rdf = compute_rdf(species_A, species_B, resolution)
 
-        plt.savefig( '' , dpi=resolution, bbox_inches='tight', format='pdf')
+    plt.plot(radii, rdf, label = species_name)
+    plt.legend()
+    plt.savefig( species_name + '.pdf' , dpi=resolution, bbox_inches='tight', format='pdf')
 
-"""        def plot( rdf, resolution ):
-         
-        plt.xlabel('r (Å)')
-        plt.ylabel('g(r)')
-        plt.plot(self.radii, self.rdf)
-         
-        if rdf_filename:
-            plt.savefig(rdf_filename, dpi=300, bbox_inches='tight', format='pdf')
-         
-        plt.show()"""
+def plot3d(species_A, species_B, species_name):
 
-    #plt.savefig('tries.pdf', dpi=300, bbox_inches='tight')
-    #plt.savefig('tries_ur.pdf', dpi=300, bbox_inches='tight')
+    X_1 = species_A[:,0]
+    Y_1 = species_A[:,1]
+    Z_1 = species_A[:,2]
+
+    X_2 = species_B[:,0]
+    Y_2 = species_B[:,1]
+    Z_2 = species_B[:,2]
+
+    fig3d = plt.figure( figsize = ( 10, 10) )
+    ax = plt. axes( projection = '3d')
+    ax.grid()
+
+    ax.scatter( X_1, Y_1, Z_1, c = 'r', s = 50)
+    ax.scatter( X_2, Y_2, Z_2, c = 'b', s = 50)
+    ax.set_title( 'Nucleotidos ' + species_name )
+
+    ax.set_xlabel('x', labelpad = 20)
+    ax.set_ylabel('y', labelpad = 20)
+    ax.set_zlabel('z', labelpad = 20)
+
+    plt.show()
+    plt.savefig(species_name + '_3d' + '.pdf')
+
+
 
 
 
 
 #compute_rdf(A,U)
+
+#plotrdf(A, U, 300, 'AU')
+#plotrdf(C, G, 300, 'CG')
+plot3d(A, C, 'AC')
