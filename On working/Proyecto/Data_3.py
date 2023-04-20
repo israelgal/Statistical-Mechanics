@@ -216,13 +216,15 @@ def compute_rdf(Species_A, Species_B):
 
     return rdf, radii
 
+    def plot( rdf, radii,  resolution,  species_A, species_B, species_name):
 
-def compute_rdf(Species_A, Species_B, resolutiom):
+        plt.xlabel( 'r (Å)')
+        plt.ylabel(  'g(r)' )
 
-    r_cutoff =  15 #min( min(X_max, Y_max ), Z_max ) / 2.0
-    dr = r_cutoff / resolution
-    volumes = np.zeros(resolution)
+        radii, rdf = compute_rdf(Species_A, Species_B)
+        plt.plot(radii, rdf)
 
+        plt.savefig( '' , dpi=resolution, bbox_inches='tight', format='pdf')
 
 """        def plot( rdf, resolution ):
          

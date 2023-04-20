@@ -1,0 +1,5 @@
+Explicar mi código y lo que obtengo, 
+
+luego hacerlo para un radio empírico 
+
+y por último hacerlo para varios con radios empiricos 
