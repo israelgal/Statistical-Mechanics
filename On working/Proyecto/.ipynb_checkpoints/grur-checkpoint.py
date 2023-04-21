@@ -217,55 +217,24 @@ class RDF:
 
         return self.radii, self.rdf
 
-    def plot_rdf(self, specie_ab, filename):
+    def plot_rdf(self, specie_ab ):
 
-        rad, rdff = self.WCpairs( specie_ab )
+        self.rad, self.rdff = self.WCpairs( specie_ab )
+
+        print(self.rad)
+        print(self.rdff)
 
         plt.xlabel( 'r (Å)')
         plt.ylabel(  'g(r)' )
 
-        plt.plot(rad, rdff, label = specie_ab)
+        plt.plot(self.rad, self.rdff, label = specie_ab)
         plt.legend()
-        plt.savefig( 'rdf_' + filename + specie_ab + '.pdf' , dpi= self.resolution, bbox_inches='tight', format='pdf')
+        plt.savefig( 'rdf_' + specie_ab + '.pdf' , dpi= self.resolution, bbox_inches='tight', format='pdf')
         #plt.show()
 
-    def plot_rdf_3d(self, species_ab, filename):
-
-        if species_ab == 'AU':
-            species_A = self.A
-            species_B = self.U
-        elif specie_ab == 'GC':
-            species_A = self.G
-            species_B = self.C
-        else:
-            return print('Not valid pairs')
 
 
-        X_1 = species_A[:,0]
-        Y_1 = species_A[:,1]
-        Z_1 = species_A[:,2]
-
-        X_2 = species_B[:,0]
-        Y_2 = species_B[:,1]
-        Z_2 = species_B[:,2]
-
-        fig3d = plt.figure( figsize = ( 10, 10) )
-        ax = plt. axes( projection = '3d')
-        ax.grid()
-
-        ax.scatter( X_1, Y_1, Z_1, c = 'r', s = 50)
-        ax.scatter( X_2, Y_2, Z_2, c = 'b', s = 50)
-        ax.set_title( 'Nucleotidos ' + species_ab )
-
-        ax.set_xlabel('x', labelpad = 20)
-        ax.set_ylabel('y', labelpad = 20)
-        ax.set_zlabel('z', labelpad = 20)
-
-        #plt.show()
-        plt.savefig('rdf' + filename + species_ab + '_3d' + '.pdf')
-
-
-GR = RDF('6awc.cif', 300)
+GR = RDF('1esh.cif', 300)
 
 #GR.Atoms_data(GR.Ats_inf)
 #print(GR.A)
@@ -275,7 +244,6 @@ GR = RDF('6awc.cif', 300)
 #Datos = GR.WCpairs('AU')
 #print(Datos)
 
-GR.plot_rdf('AU', '6awc')
-GR.plot_rdf_3d('AU', '6awc')
+GR.plot_rdf('AU')
 
 

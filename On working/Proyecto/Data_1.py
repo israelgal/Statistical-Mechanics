@@ -159,7 +159,7 @@ def compute_rdf(Species_A, Species_B):
         N_species = N_A + N_B
 
 
-        r_cutoff = min( min(X_max, Y_max ), Z_max ) / 2.0
+        r_cutoff = 16 #min( min(X_max, Y_max ), Z_max ) / 2.0
         dr = r_cutoff / resolution
         volumes = np.zeros(resolution)
 
@@ -208,7 +208,8 @@ def compute_rdf(Species_A, Species_B):
         plt.ylabel('g(r)')
         plt.plot(radii, rdf)
 
-        plt.savefig('tries.pdf', dpi=300, bbox_inches='tight')
+        plt.savefig('1esh.pdf', dpi=300, bbox_inches='tight')
+        #plt.show()
 
 
 

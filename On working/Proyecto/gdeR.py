@@ -33,11 +33,13 @@ class RDF_obj:
         print(self.coordinates)
     def volume(self,r):
         """ volumen de una esfera de radio r """
+
         volume = 4.0 / 3.0 * sp.pi * r**3
         return volume
      
     def distance(self,a, b):
         """ distancia minima entre dos particulas, considerando las dimensiones de la celda primaria """
+
         dx = abs(a[0] - b[0])
         x = min(dx, abs(self.x - dx))
          
