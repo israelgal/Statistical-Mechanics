@@ -4,7 +4,7 @@ import scipy as sp
 
 """ Abre documento .cif y lee sus lineas """
 
-with open('6awc.cif') as f:
+with open('1esh.cif') as f:
     data = f.readlines()
 
 """ Crea una lista y añade la información del átomo
@@ -20,7 +20,7 @@ for line in range(len(data)):
 
 """ Creo un archivo con los datos de los átomos """
 
-with open('6awc_raw.pdb','w') as g:
+with open('1esh_raw.pdb','w') as g:
     for line in Ats_inf:
         g.write(line)
 
@@ -126,14 +126,52 @@ C = np.array(C)
 G = np.array(G)
 U = np.array(U)
 
-#A_0 = np.reshape(A, axis = 0)
+N_A = len(A)
+N_C = len(C)
+N_G = len(G)
+N_U = len(U)
 
-#print(A_0)
+Max_values = np.amax( Matrix, axis = 0 )
+Min_values = np.amin( Matrix, axis = 0 )
 
-#print(len(A))
+X_max = max( abs(int(Max_values[3])), abs(int( Min_values[3] )))
+Y_max = max( abs(int(Max_values[4])), abs(int( Min_values[4] )))
+Z_max = max( abs(int(Max_values[5])), abs(int( Min_values[5] )))
 
-#print(A)
-#print(C)
+
+print(X_max, Y_max, Z_max)
+
+P = 1
+
+delta_x = (X_max - (- X_max)) / 10
+delta_y = (Y_max - ( - Y_max)) / 10
+delta_z = (Z_max - ( - Z_max)) / 10
+
+NX_max, NY_max, NY_max = X_max, Y_max, Z_max
+
+Positions_list = np.concatenate((A, U), axis = 0)
+
+
+
+#print(A, U)
+print(Positions_list)
+
+arraylist = np.reshape(Positions_list, len(Positions_list)*3)
+print(A)
+sortedlist = np.sort(arraylist, axis = None)
+print(sortedlist)
+
+value_max = max(abs(sortedlist[0]), (sortedlist[-1]))
+print(value_max)
+for i in range(len(A) + len(U)):
+    
+
+#def Percent(specei_A, specie_B, N_A, N_B, P):
+
+#for i in range(100):
+#   NX_max = NX_max - delta_x/2
+     
+#    print(NX_max)
 
 def distance(a, b):
     """ Calculo de la distancia  """
@@ -229,7 +267,7 @@ def plot3d(species_A, species_B, species_name):
     Z_2 = species_B[:,2]
 
     fig3d = plt.figure( figsize = ( 10, 10) )
-    ax = plt. axes( projection = '3d')
+    ax = plt.axes( projection = '3d')
     ax.grid()
 
     ax.scatter( X_1, Y_1, Z_1, c = 'r', s = 50)
@@ -241,7 +279,7 @@ def plot3d(species_A, species_B, species_name):
     ax.set_zlabel('z', labelpad = 20)
 
     plt.show()
-    plt.savefig(species_name + '_3d' + '.pdf')
+    #plt.savefig(species_name + '_3d' + '.png')
 
 
 
@@ -252,4 +290,4 @@ def plot3d(species_A, species_B, species_name):
 
 #plotrdf(A, U, 300, 'AU')
 #plotrdf(C, G, 300, 'CG')
-plot3d(A, C, 'AC')
+#plot3d(A, U, 'AU')

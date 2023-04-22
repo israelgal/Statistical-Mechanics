@@ -180,7 +180,7 @@ class RDF:
     def compute_rdf(self, Species_A, Species_B, N_A, N_B, resolution):
         """ el radio de corte es la mitad de la longitud minima de las dimensiones de la celda """
 
-        resolution = 300
+        self.resolution = resolution
         N_species = N_A + N_B
 
         r_cutoff =  16 #min( min(X_max, Y_max ), Z_max ) / 2.0
@@ -200,7 +200,7 @@ class RDF:
                 if 0 < index < self.resolution:
                     self.rdf[i,index] += 2.0
 
-        for j in range(resolution):
+        for j in range(self.resolution):
             r1 = j*dr
             r2 = r1 + dr
             v1 = self.volume(r1)
@@ -227,7 +227,7 @@ class RDF:
         plt.plot(rad, rdff, label = specie_ab)
         plt.legend()
         plt.savefig( 'rdf_' + filename + specie_ab + '.pdf' , dpi= self.resolution, bbox_inches='tight', format='pdf')
-        #plt.show()
+        plt.show()
 
     def plot_rdf_3d(self, species_ab, filename):
 
@@ -262,10 +262,10 @@ class RDF:
         ax.set_zlabel('z', labelpad = 20)
 
         #plt.show()
-        plt.savefig('rdf' + filename + species_ab + '_3d' + '.pdf')
+        plt.savefig('rdf_' + filename + species_ab + '_3d' + '.pdf')
 
 
-GR = RDF('6awc.cif', 300)
+GR = RDF('6awc.cif', 100)
 
 #GR.Atoms_data(GR.Ats_inf)
 #print(GR.A)
@@ -276,6 +276,6 @@ GR = RDF('6awc.cif', 300)
 #print(Datos)
 
 GR.plot_rdf('AU', '6awc')
-GR.plot_rdf_3d('AU', '6awc')
+#GR.plot_rdf_3d('AU', '6awc')
 
 
