@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 
 
 class RDF:
-    def __init__(self, filename, resolution):
+    def __init__(self, filename, resolution, percent):
 
         """ Molecular weights  """
 
@@ -14,6 +14,8 @@ class RDF:
         Carbon = 12.011
         Fosforo = 30.973762
 
+        self.resolution = resolution
+        self.percent = percent
 
         with open( filename ) as f:
             data = f.readlines()
@@ -37,9 +39,9 @@ class RDF:
         Matrix = np.zeros( ( self.N_atoms , 6 ) )
 
         """ Atomic weights are substituted by their numerical values,
-                and nucleotides types by 1234 """
+                and nucleotides by 1234 """
 
-        for j, line in enumerate(self.Ats_inf):
+        for j, line in enumerate( self.Ats_inf ):
             if  line.split()[2] == 'H':
                 Matrix[j, 0] = Hidrogen
             elif  line.split()[2] == 'O':
@@ -51,7 +53,8 @@ class RDF:
             elif  line.split()[2] == 'P':
                 Matrix[j, 0] = Fosforo
             else:
-                print(0)
+                print( 'Add atom ', line.split()[2] )
+
             if  line.split()[5] == 'A':
                 Matrix[j, 1] = 1
             elif  line.split()[5] == 'C':
@@ -62,6 +65,7 @@ class RDF:
                 Matrix[j, 1] = 4
             else:
                 print(0)
+
             Matrix[j,2:] = [line.split()[8],
                     line.split()[10], line.split()[11],line.split()[12]]
 
@@ -106,17 +110,15 @@ class RDF:
         self.N_G = len(self.G)
         self.N_U = len(self.U)
 
-        Max_values = np.amax( Matrix, axis = 0 )
-        Min_values = np.amin( Matrix, axis = 0 )
+        #Max_values = np.amax( Matrix, axis = 0 )
+        #Min_values = np.amin( Matrix, axis = 0 )
 
-        self.X_max = max( abs(int(Max_values[3])), abs(int( Min_values[3] )))
-        self.Y_max = max( abs(int(Max_values[4])), abs(int( Min_values[4] )))
-        self.Z_max = max( abs(int(Max_values[5])), abs(int( Min_values[5] )))
-
-        self.resolution = resolution
+        #self.X_max = max( abs(int(Max_values[3])), abs(int( Min_values[3] )))
+        #self.Y_max = max( abs(int(Max_values[4])), abs(int( Min_values[4] )))
+        #self.Z_max = max( abs(int(Max_values[5])), abs(int( Min_values[5] )))
 
 
-        #########################################################################
+    #########################################################################
 
     def CoM(self, stack):
         """ Comute the center of mass of an array of positions """
@@ -130,6 +132,45 @@ class RDF:
             Y += stack[i,0] * stack[i,2]
             Z += stack[i,0] * stack[i,3]
         return (X, Y, Z)/M
+
+
+
+    def reduced_box( self, species_A, species_B , N_A , N_B , percent ):
+
+        if int(percent) == 1:
+            return species_A, species_B
+
+        copyA = np.copy( species_A )
+        copyB = np.copy( species_B )
+        Iter_N = int( ( N_A + N_B ) * ( 1 - percent ) )
+
+        for i in range( Iter_N ):
+            SAmax = np.max( copyA )
+            SBmax = np.max( copyB )
+            SAmin = np.min( copyA )
+            SBmin = np.min( copyB )
+
+            Max_value =  max( abs( max(  SAmax , SBmax ) ), abs( min(  SAmin , SBmin ) ) )
+            #print(Max_value)
+
+            if Max_value == abs( SAmax ):
+                index = np.where( copyA == SAmax )[0][0]
+                copyA = np.delete( copyA , index , axis = 0)
+            elif Max_value == abs( SBmax ):
+                index =  np.where( copyB == SBmax )[0][0]
+                copyB = np.delete( copyB , index , axis = 0)
+            elif Max_value == abs( SAmin ):
+                index =  np.where( copyA == SAmin )[0][0]
+                copyA = np.delete( copyA , index , axis = 0)
+            else:
+                index = np.where( copyB == SBmin)[0][0]
+                copyB = np.delete( copyB , index, axis = 0)
+
+        print( len(copyA), len(copyB) )
+
+        return copyA, copyB
+
+
 
     def Atoms_data(self, Atoms_inf, Atoms_filename):
         """ Creates a document .ciff with the information of the atoms """
@@ -167,20 +208,34 @@ class RDF:
     def WCpairs(self, specie_ab):
         if specie_ab == 'AU':
             print('Computing rdf between species AU...')
-            rdf_ab = self.compute_rdf(self.A, self.U, self.N_A, self.N_U, self.resolution)
+            rdf_ab = self.compute_rdf(self.A, self.U, self.N_A, self.N_U, self.resolution, self.percent)
         elif specie_ab == 'GC':
             print('Computing rdf between species GC...')
-            rdf_ab = self.compute_rdf( self.G, self.C, self.N_G, self.N_C, self.resolution)
+            rdf_ab = self.compute_rdf( self.G, self.C, self.N_G, self.N_C, self.resolution, self.percent)
         else:
             print('Not valid pairs')
             rdf_ab = 0
         return rdf_ab
 
 
-    def compute_rdf(self, Species_A, Species_B, N_A, N_B, resolution):
+    def compute_rdf(self, Species_A, Species_B, N_A, N_B, resolution, percent):
         """ el radio de corte es la mitad de la longitud minima de las dimensiones de la celda """
 
+        Species_A, Species_B = self.reduced_box(Species_A, Species_B, N_A, N_B, percent)
+
+        Concatenate = np.concatenate( ( Species_A, Species_B ) )
+
+        Max_pos = np.amax( Concatenate, axis = 0 )
+        Min_pos = np.amin( Concatenate, axis = 0 )
+
+        self.X_max = Max_pos[0] - Min_pos[0]
+        self.Y_max = Max_pos[1] - Min_pos[1]
+        self.Z_max = Max_pos[2] - Min_pos[2]
+
+        print(self.X_max, self.Y_max, self.Z_max)
+
         self.resolution = resolution
+
         N_species = N_A + N_B
 
         r_cutoff =  16 #min( min(X_max, Y_max ), Z_max ) / 2.0
@@ -203,8 +258,8 @@ class RDF:
         for j in range(self.resolution):
             r1 = j*dr
             r2 = r1 + dr
-            v1 = self.volume(r1)
-            v2 = self.volume(r2)
+            v1 = self.volume( r1 )
+            v2 = self.volume( r2 )
             volumes[j] += v2 - v1
 
         #rdf = rdf / N_species
@@ -265,7 +320,7 @@ class RDF:
         plt.savefig('rdf_' + filename + species_ab + '_3d' + '.pdf')
 
 
-GR = RDF('6awc.cif', 100)
+GR = RDF('6awc.cif', 100, 0.8)
 
 #GR.Atoms_data(GR.Ats_inf)
 #print(GR.A)
@@ -276,6 +331,6 @@ GR = RDF('6awc.cif', 100)
 #print(Datos)
 
 GR.plot_rdf('AU', '6awc')
-#GR.plot_rdf_3d('AU', '6awc')
+GR.plot_rdf_3d('AU', '6awc')
 
 
